@@ -3,6 +3,7 @@ const app = express();
 const path = require('path');
 const mongoose = require('mongoose');
 const Product =  require('./models/product');
+const methodOverride = require('method-override');
 
 mongoose.connect('mongodb://localhost:27017/farmStand')
 .then(() => {
@@ -16,6 +17,7 @@ mongoose.connect('mongodb://localhost:27017/farmStand')
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 app.use(express.urlencoded({extended: true}));
+app.use(methodOverride('_method'))
 
 app.get('/products', async (req, res) => {
    const products =  await Product.find({})
@@ -42,8 +44,18 @@ app.get('/products/:id', async (req, res) => {
 })
 
 
+app.get('/products/:id/edit', async (req, res) => {
+    const{id} = req.params;
+    const product = await Product.findById(id);
+    res.render('products/edit', {product});
+})
 
-
+app.put('/products/:id', async (req, res) => {
+    const {id} = req.params;
+    const product = await Product.findByIdAndUpdate(id, req.body, {runValidators: true, new: true})
+    console.log(product);
+    res.redirect(`/products/${product._id}`);
+})
 
 
 const port = 3000;
